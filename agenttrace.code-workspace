@@ -1,0 +1,233 @@
+{
+  "folders": [
+    {
+      "name": "🏠 Root",
+      "path": "."
+    },
+    {
+      "name": "🐍 Python SDK",
+      "path": "packages/sdk-python"
+    },
+    {
+      "name": "🔌 API",
+      "path": "apps/api"
+    },
+    {
+      "name": "⚛️ Dashboard",
+      "path": "apps/dashboard"
+    },
+    {
+      "name": "🚀 Ingestion",
+      "path": "apps/ingestion"
+    },
+    {
+      "name": "💡 Examples",
+      "path": "examples"
+    },
+    {
+      "name": "📚 Documentation",
+      "path": "docs"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/dist": true,
+      "**/*.egg-info": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/dist": true,
+      "**/__pycache__": true
+    },
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.formatting.provider": "black",
+    "python.analysis.typeCheckingMode": "basic",
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true,
+      "editor.rulers": [100],
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "tailwindCSS.experimental.classRegex": [
+      ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+    ],
+    "typescript.tsdk": "apps/dashboard/node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-python.black-formatter",
+      "charliermarsh.ruff",
+      "golang.go",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "eamodio.gitlens",
+      "rangav.vscode-thunder-client",
+      "ms-azuretools.vscode-docker",
+      "github.copilot",
+      "github.copilot-chat"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🔌 Debug API",
+        "type": "python",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": [
+          "main:app",
+          "--reload",
+          "--port",
+          "8000"
+        ],
+        "cwd": "${workspaceFolder:API}",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder:API}"
+        },
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "🐍 Debug SDK Tests",
+        "type": "python",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "tests/",
+          "-v",
+          "--tb=short"
+        ],
+        "cwd": "${workspaceFolder:Python SDK}",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "⚛️ Debug Dashboard (Chrome)",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder:Dashboard}/src",
+        "preLaunchTask": "dashboard-dev"
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "dashboard-dev",
+        "type": "shell",
+        "command": "npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder:Dashboard}"
+        },
+        "isBackground": true,
+        "problemMatcher": []
+      },
+      {
+        "label": "api-dev",
+        "type": "shell",
+        "command": "python main.py",
+        "options": {
+          "cwd": "${workspaceFolder:API}"
+        },
+        "isBackground": true,
+        "problemMatcher": []
+      },
+      {
+        "label": "docker-up",
+        "type": "shell",
+        "command": "docker-compose up -d",
+        "options": {
+          "cwd": "${workspaceFolder:Root}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "docker-down",
+        "type": "shell",
+        "command": "docker-compose down",
+        "options": {
+          "cwd": "${workspaceFolder:Root}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "test-sdk",
+        "type": "shell",
+        "command": "pytest tests/ -v",
+        "options": {
+          "cwd": "${workspaceFolder:Python SDK}"
+        },
+        "group": "test",
+        "problemMatcher": []
+      },
+      {
+        "label": "test-api",
+        "type": "shell",
+        "command": "pytest tests/ -v",
+        "options": {
+          "cwd": "${workspaceFolder:API}"
+        },
+        "group": "test",
+        "problemMatcher": []
+      },
+      {
+        "label": "test-dashboard",
+        "type": "shell",
+        "command": "npm test",
+        "options": {
+          "cwd": "${workspaceFolder:Dashboard}"
+        },
+        "group": "test",
+        "problemMatcher": []
+      },
+      {
+        "label": "format-python",
+        "type": "shell",
+        "command": "black . && ruff check . --fix",
+        "options": {
+          "cwd": "${workspaceFolder:Python SDK}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "build-sdk",
+        "type": "shell",
+        "command": "python -m build",
+        "options": {
+          "cwd": "${workspaceFolder:Python SDK}"
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+}

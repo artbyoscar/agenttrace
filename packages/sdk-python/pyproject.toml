@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agenttrace"
+version = "0.1.0"
+description = "Python SDK for AgentTrace - AI Agent Observability Platform"
+readme = "README.md"
+authors = [
+    {name = "AgentTrace Team", email = "hello@agenttrace.dev"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["ai", "agents", "observability", "tracing", "monitoring", "langchain", "crewai"]
+requires-python = ">=3.9"
+dependencies = [
+    "httpx>=0.26.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.8.0",
+]
+langchain = [
+    "langchain>=0.1.0",
+]
+crewai = [
+    "crewai>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/agenttrace"
+Documentation = "https://docs.agenttrace.dev"
+Repository = "https://github.com/yourusername/agenttrace"
+Issues = "https://github.com/yourusername/agenttrace/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=agenttrace --cov-report=term-missing"

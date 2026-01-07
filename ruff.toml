@@ -1,0 +1,61 @@
+# Ruff configuration for AgentTrace monorepo
+# Documentation: https://docs.astral.sh/ruff/
+
+# Exclude common directories
+extend-exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "dist",
+    "build",
+    "*.egg-info",
+    ".next",
+    "node_modules",
+]
+
+# Line length to match Black
+line-length = 100
+
+# Target Python version
+target-version = "py39"
+
+[lint]
+# Enable linting rules
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
+    "PL",   # pylint
+]
+
+# Disable specific rules
+ignore = [
+    "E501",   # line too long (handled by Black)
+    "PLR0913", # too many arguments
+    "PLR2004", # magic value comparison
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[format]
+# Use tabs for indentation
+indent-style = "space"
+
+# Use double quotes for strings
+quote-style = "double"
+
+# Format docstrings
+docstring-code-format = true
