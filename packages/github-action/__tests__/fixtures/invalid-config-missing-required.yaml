@@ -1,0 +1,27 @@
+version: 1
+
+project:
+  name: test-project
+
+# Missing agent section
+
+test_suites:
+  - name: test_suite
+    test_cases:
+      - name: test_one
+        input:
+          messages:
+            - role: user
+              content: "test"
+        expected:
+          success: true
+
+evaluators: []
+
+baseline:
+  branch: main
+
+reporting:
+  comment_on_pr: true
+  detailed_traces: true
+  upload_traces: true

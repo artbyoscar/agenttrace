@@ -6,7 +6,8 @@
       "Bash(dir:*)",
       "Bash(cat:*)",
       "Bash(chmod:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

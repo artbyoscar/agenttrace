@@ -560,6 +560,120 @@ class AgentTrace:
             cls._instance = cls(**kwargs)
             return cls._instance
 
+    @classmethod
+    def instrument_langchain(cls) -> None:
+        """
+        Enable automatic instrumentation for LangChain.
+
+        Patches LangChain to automatically trace all operations including:
+        - LLM calls
+        - Chain executions
+        - Agent steps
+        - Tool invocations
+        - Retriever queries
+
+        Must be called after AgentTrace.init().
+
+        Example:
+            >>> trace = AgentTrace.init()
+            >>> AgentTrace.instrument_langchain()
+            >>>
+            >>> # Now all LangChain operations are automatically traced
+            >>> from langchain.chains import LLMChain
+            >>> chain = LLMChain(...)
+            >>> chain.run("query")  # Automatically traced!
+
+        Note:
+            Auto-instrumentation is currently in development.
+            Use manual instrumentation with decorators for now.
+        """
+        from .integrations import get_integration
+
+        instance = cls.get_instance()
+        if instance is None:
+            raise RuntimeError(
+                "AgentTrace must be initialized before enabling instrumentation. "
+                "Call AgentTrace.init() first."
+            )
+
+        integration = get_integration("langchain", instance)
+        integration.enable()
+
+    @classmethod
+    def instrument_openai(cls) -> None:
+        """
+        Enable automatic instrumentation for OpenAI API.
+
+        Patches OpenAI SDK to automatically trace all API calls including:
+        - ChatCompletion calls
+        - Completion calls
+        - Embedding calls
+        - All other OpenAI API interactions
+
+        Must be called after AgentTrace.init().
+
+        Example:
+            >>> trace = AgentTrace.init()
+            >>> AgentTrace.instrument_openai()
+            >>>
+            >>> # Now all OpenAI calls are automatically traced
+            >>> import openai
+            >>> openai.ChatCompletion.create(...)  # Automatically traced!
+
+        Note:
+            Auto-instrumentation is currently in development.
+            Use manual instrumentation with decorators for now.
+        """
+        from .integrations import get_integration
+
+        instance = cls.get_instance()
+        if instance is None:
+            raise RuntimeError(
+                "AgentTrace must be initialized before enabling instrumentation. "
+                "Call AgentTrace.init() first."
+            )
+
+        integration = get_integration("openai", instance)
+        integration.enable()
+
+    @classmethod
+    def instrument_crewai(cls) -> None:
+        """
+        Enable automatic instrumentation for CrewAI.
+
+        Patches CrewAI to automatically trace all operations including:
+        - Agent executions
+        - Task executions
+        - Crew workflows
+        - Tool invocations
+
+        Must be called after AgentTrace.init().
+
+        Example:
+            >>> trace = AgentTrace.init()
+            >>> AgentTrace.instrument_crewai()
+            >>>
+            >>> # Now all CrewAI operations are automatically traced
+            >>> from crewai import Agent, Task, Crew
+            >>> crew = Crew(...)
+            >>> crew.kickoff()  # Automatically traced!
+
+        Note:
+            Auto-instrumentation is currently in development.
+            Use manual instrumentation with decorators for now.
+        """
+        from .integrations import get_integration
+
+        instance = cls.get_instance()
+        if instance is None:
+            raise RuntimeError(
+                "AgentTrace must be initialized before enabling instrumentation. "
+                "Call AgentTrace.init() first."
+            )
+
+        integration = get_integration("crewai", instance)
+        integration.enable()
+
 
 # Global convenience functions
 

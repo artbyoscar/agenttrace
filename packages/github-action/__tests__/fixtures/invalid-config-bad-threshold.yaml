@@ -1,0 +1,31 @@
+version: 1
+
+project:
+  name: test-project
+
+agent:
+  module: test.agent
+  function: Agent
+
+test_suites:
+  - name: test_suite
+    test_cases:
+      - name: test_one
+        input:
+          messages:
+            - role: user
+              content: "test"
+        expected:
+          success: true
+
+evaluators:
+  - name: accuracy
+    threshold: 1.5  # Invalid: threshold must be between 0 and 1
+
+baseline:
+  branch: main
+
+reporting:
+  comment_on_pr: true
+  detailed_traces: true
+  upload_traces: true

@@ -27,7 +27,8 @@
     "@octokit/rest": "^20.0.2",
     "agenttrace": "workspace:*",
     "js-yaml": "^4.1.0",
-    "axios": "^1.6.2"
+    "axios": "^1.6.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

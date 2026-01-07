@@ -16,25 +16,103 @@ export interface ActionOutputs {
   resultsUrl?: string;
 }
 
+// Main configuration interface
 export interface AgentTraceConfig {
-  project: string;
-  api_key?: string;
-  api_url?: string;
-  suites: TestSuite[];
-  evaluators?: EvaluatorConfig[];
-  thresholds?: ThresholdConfig;
+  version: 1;
+
+  project: {
+    name: string;
+    id?: string;
+  };
+
+  agent: {
+    module: string;
+    function: string;
+    setup_command?: string;
+    env_file?: string;
+  };
+
+  test_suites: TestSuite[];
+
+  evaluators: EvaluatorConfig[];
+
+  baseline: {
+    branch: string;
+    require_improvement?: boolean;
+    regression_threshold?: number;
+  };
+
+  reporting: {
+    comment_on_pr: boolean;
+    detailed_traces: boolean;
+    upload_traces: boolean;
+    badge_style?: 'flat' | 'flat-square' | 'plastic';
+  };
+
+  execution: {
+    timeout_seconds?: number;
+    max_retries?: number;
+    parallelism?: number;
+  };
 }
 
 export interface TestSuite {
   name: string;
   description?: string;
+  tags?: string[];
   test_cases: TestCase[];
+}
+
+export interface TestCase {
+  name: string;
+  description?: string;
+  input: {
+    messages: Array<{role: string; content: string}>;
+    context?: Record<string, any>;
+  };
+  expected: {
+    contains?: string[];
+    not_contains?: string[];
+    tool_called?: string[];
+    tool_not_called?: string[];
+    max_latency_ms?: number;
+    max_tokens?: number;
+    success?: boolean;
+    graceful_error?: boolean;
+    custom?: Record<string, any>;
+  };
+  timeout_seconds?: number;
+  skip?: boolean;
+  skip_reason?: string;
+}
+
+export interface EvaluatorConfig {
+  name: string;
+  threshold: number;
+  required?: boolean;
+  config?: Record<string, any>;
+}
+
+// Legacy support for old config format
+export interface LegacyAgentTraceConfig {
+  project: string;
+  api_key?: string;
+  api_url?: string;
+  suites: LegacyTestSuite[];
+  evaluators?: LegacyEvaluatorConfig[];
+  thresholds?: ThresholdConfig;
+}
+
+export interface LegacyTestSuite {
+  name: string;
+  description?: string;
+  test_cases: LegacyTestCase[];
   evaluators?: string[];
   parallel?: boolean;
   timeout?: number;
 }
 
-export interface TestCase {
+export interface LegacyTestCase {
   id: string;
   name: string;
   description?: string;
@@ -44,7 +122,7 @@ export interface TestCase {
   evaluators?: string[];
 }
 
-export interface EvaluatorConfig {
+export interface LegacyEvaluatorConfig {
   name: string;
   type: string;
   config?: Record<string, any>;

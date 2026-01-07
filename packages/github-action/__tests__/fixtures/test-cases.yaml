@@ -1,0 +1,17 @@
+- name: greeting_test
+  input:
+    messages:
+      - role: user
+        content: "Hello there!"
+  expected:
+    success: true
+    contains: ["hello", "hi"]
+
+- name: farewell_test
+  input:
+    messages:
+      - role: user
+        content: "Goodbye!"
+  expected:
+    success: true
+    contains: ["goodbye", "bye"]

@@ -1,0 +1,164 @@
+# Example AgentTrace configuration file
+# Copy this file to agenttrace.yaml and customize for your project
+
+project: my-agent-project
+
+# API configuration (optional - can use environment variables or action inputs)
+# api_key: your-api-key-here
+# api_url: https://api.agenttrace.com
+
+# Define test suites
+suites:
+  - name: basic-queries
+    description: Basic query handling tests
+    parallel: true
+    timeout: 30000
+    evaluators:
+      - accuracy
+      - relevance
+    test_cases:
+      - id: query-001
+        name: Simple factual question
+        description: Test basic fact retrieval
+        input:
+          query: "What is the capital of France?"
+        expected_output:
+          answer: "Paris"
+        metadata:
+          category: factual
+          difficulty: easy
+
+      - id: query-002
+        name: Mathematical calculation
+        description: Test basic arithmetic
+        input:
+          query: "What is 15 multiplied by 8?"
+        expected_output:
+          answer: "120"
+        metadata:
+          category: math
+          difficulty: easy
+
+      - id: query-003
+        name: Multi-step reasoning
+        description: Test reasoning capabilities
+        input:
+          query: "If a train travels 60 mph for 2.5 hours, how far does it go?"
+        expected_output:
+          answer: "150 miles"
+        metadata:
+          category: reasoning
+          difficulty: medium
+
+  - name: edge-cases
+    description: Edge case and error handling
+    parallel: false
+    evaluators:
+      - robustness
+      - error-handling
+    test_cases:
+      - id: edge-001
+        name: Empty input
+        description: Handle empty queries gracefully
+        input:
+          query: ""
+        evaluators:
+          - error-handling
+
+      - id: edge-002
+        name: Very long input
+        description: Handle long queries
+        input:
+          query: "{{ repeat('word ', 1000) }}"
+        evaluators:
+          - robustness
+
+      - id: edge-003
+        name: Special characters
+        description: Handle special characters
+        input:
+          query: "What is the meaning of @#$%^&*()?"
+        evaluators:
+          - robustness
+
+  - name: domain-specific
+    description: Domain-specific capabilities
+    evaluators:
+      - domain-accuracy
+      - completeness
+    test_cases:
+      - id: domain-001
+        name: Technical question
+        description: Answer technical questions accurately
+        input:
+          query: "Explain how a REST API works"
+        expected_output:
+          contains:
+            - "HTTP"
+            - "endpoint"
+            - "request"
+            - "response"
+
+# Configure evaluators
+evaluators:
+  - name: accuracy
+    type: exact-match
+    threshold: 0.9
+    config:
+      case_sensitive: false
+      normalize_whitespace: true
+
+  - name: relevance
+    type: semantic-similarity
+    threshold: 0.85
+    config:
+      model: sentence-transformers/all-MiniLM-L6-v2
+      metric: cosine
+
+  - name: robustness
+    type: llm-judge
+    threshold: 0.7
+    config:
+      model: gpt-4
+      criteria: |
+        Evaluate if the response handles the edge case appropriately:
+        - Does not crash or error
+        - Provides a reasonable response
+        - Acknowledges limitations when appropriate
+
+  - name: error-handling
+    type: custom
+    threshold: 1.0
+    config:
+      check_for_errors: true
+      require_graceful_degradation: true
+
+  - name: domain-accuracy
+    type: llm-judge
+    threshold: 0.8
+    config:
+      model: gpt-4
+      criteria: |
+        Evaluate the technical accuracy of the response:
+        - Uses correct terminology
+        - Provides accurate information
+        - Covers key concepts
+
+  - name: completeness
+    type: contains-check
+    threshold: 0.75
+    config:
+      required_elements: expected_output.contains
+
+# Define thresholds for pass/fail
+thresholds:
+  min_score: 75.0
+  max_failures: 3
+  max_regressions: 2
+
+  # Per-evaluator thresholds (optional)
+  evaluators:
+    accuracy: 0.9
+    relevance: 0.85
+    robustness: 0.7
+    domain-accuracy: 0.8

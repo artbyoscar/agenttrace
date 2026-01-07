@@ -1,0 +1,35 @@
+version: 1
+
+project:
+  name: ${PROJECT_NAME}
+  id: ${PROJECT_ID}
+
+agent:
+  module: ${AGENT_MODULE}
+  function: SupportAgent
+
+test_suites:
+  - name: basic_tests
+    test_cases:
+      - name: test_one
+        input:
+          messages:
+            - role: user
+              content: "Hello ${USER_NAME}"
+        expected:
+          success: true
+
+evaluators:
+  - name: accuracy
+    threshold: 0.8
+
+baseline:
+  branch: ${BASE_BRANCH}
+
+reporting:
+  comment_on_pr: true
+  detailed_traces: true
+  upload_traces: true
+
+execution:
+  timeout_seconds: 300

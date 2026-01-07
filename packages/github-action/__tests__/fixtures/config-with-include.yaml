@@ -1,0 +1,27 @@
+version: 1
+
+project:
+  name: test-project
+
+agent:
+  module: test.agent
+  function: Agent
+
+test_suites:
+  - name: included_tests
+    test_cases: !include test-cases.yaml
+
+evaluators:
+  - name: accuracy
+    threshold: 0.8
+
+baseline:
+  branch: main
+
+reporting:
+  comment_on_pr: true
+  detailed_traces: true
+  upload_traces: true
+
+execution:
+  timeout_seconds: 300

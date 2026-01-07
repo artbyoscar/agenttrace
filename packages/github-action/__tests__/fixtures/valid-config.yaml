@@ -1,0 +1,72 @@
+version: 1
+
+project:
+  name: customer-support-agent
+
+agent:
+  module: src.agents.support
+  function: SupportAgent
+  setup_command: pip install -r requirements.txt
+  env_file: .env.test
+
+test_suites:
+  - name: core_functionality
+    description: Essential agent capabilities
+    test_cases:
+      - name: order_lookup
+        input:
+          messages:
+            - role: user
+              content: "Where is my order #12345?"
+        expected:
+          tool_called: [lookup_order]
+          contains: ["order", "status"]
+          max_latency_ms: 5000
+          success: true
+
+      - name: refund_request
+        input:
+          messages:
+            - role: user
+              content: "I want to return my recent purchase"
+        expected:
+          tool_called: [get_recent_orders, initiate_refund]
+          success: true
+
+  - name: edge_cases
+    description: Error handling and boundary conditions
+    test_cases:
+      - name: invalid_order
+        input:
+          messages:
+            - role: user
+              content: "Track order #INVALID"
+        expected:
+          graceful_error: true
+          contains: ["could not find", "please check"]
+
+evaluators:
+  - name: response_completeness
+    threshold: 0.7
+    required: true
+  - name: tool_call_accuracy
+    threshold: 0.9
+  - name: latency
+    threshold: 0.8
+    config:
+      p95_max_ms: 5000
+
+baseline:
+  branch: main
+  require_improvement: false
+  regression_threshold: 0.05
+
+reporting:
+  comment_on_pr: true
+  detailed_traces: true
+  upload_traces: true
+
+execution:
+  timeout_seconds: 300
+  max_retries: 2
+  parallelism: 4

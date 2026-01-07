@@ -95,6 +95,11 @@ from .exporter import (
     create_exporter,
 )
 
+# Auto-instrumentation (re-export from client for convenience)
+instrument_langchain = AgentTrace.instrument_langchain
+instrument_openai = AgentTrace.instrument_openai
+instrument_crewai = AgentTrace.instrument_crewai
+
 # Public API
 __all__ = [
     # Version
@@ -105,6 +110,11 @@ __all__ = [
     "init",
     "get_client",
     "shutdown",
+
+    # Auto-instrumentation
+    "instrument_langchain",
+    "instrument_openai",
+    "instrument_crewai",
 
     # Configuration
     "AgentTraceConfig",
