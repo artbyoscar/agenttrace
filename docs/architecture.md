@@ -2,6 +2,13 @@
 
 Technical architecture overview of AgentTrace.
 
+> **📋 Architecture Decision Records (ADRs)**
+>
+> For detailed rationale behind architectural decisions, see our [Architecture Decision Records](architecture/decisions/README.md):
+> - [ADR-001: Monorepo vs Multi-repo](architecture/decisions/ADR-001-monorepo-vs-multirepo.md)
+> - [ADR-002: Trace Storage Backend](architecture/decisions/ADR-002-trace-storage-backend.md)
+> - [ADR-003: SDK Instrumentation Approach](architecture/decisions/ADR-003-sdk-instrumentation-approach.md)
+
 ## System Overview
 
 AgentTrace is built as a distributed system with the following components:

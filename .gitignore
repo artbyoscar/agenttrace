@@ -124,3 +124,6 @@ temp/
 # OS
 Thumbs.db
 .DS_Store
+
+# Benchmark Private Solutions (never commit)
+packages/benchmark/private/
