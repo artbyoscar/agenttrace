@@ -1,0 +1,52 @@
+name: 'AgentTrace Evaluate'
+description: 'Evaluate AI agent quality on every PR'
+author: 'AgentTrace'
+
+inputs:
+  api_key:
+    description: 'AgentTrace API key'
+    required: true
+  config_file:
+    description: 'Path to agenttrace.yaml configuration'
+    required: false
+    default: 'agenttrace.yaml'
+  fail_on_regression:
+    description: 'Fail the check if regressions detected'
+    required: false
+    default: 'true'
+  fail_on_threshold:
+    description: 'Fail if any evaluator below threshold'
+    required: false
+    default: 'true'
+  comment_on_pr:
+    description: 'Post results as PR comment'
+    required: false
+    default: 'true'
+  upload_traces:
+    description: 'Upload traces to AgentTrace dashboard'
+    required: false
+    default: 'true'
+  baseline_branch:
+    description: 'Branch to compare against'
+    required: false
+    default: 'main'
+
+outputs:
+  pass_count:
+    description: 'Number of passed tests'
+  fail_count:
+    description: 'Number of failed tests'
+  regression_count:
+    description: 'Number of regressions detected'
+  overall_score:
+    description: 'Overall evaluation score'
+  results_url:
+    description: 'URL to full results in dashboard'
+
+runs:
+  using: 'node20'
+  main: 'dist/main.js'
+
+branding:
+  icon: 'check-circle'
+  color: 'blue'

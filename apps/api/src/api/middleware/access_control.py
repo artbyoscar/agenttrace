@@ -271,8 +271,74 @@ class AuditAPIMiddleware:
 
     async def __call__(self, request: Request, call_next):
         """Process request and log to audit."""
-        # TODO: Log API access to audit trail
+        from datetime import datetime, timezone
 
-        response = await call_next(request)
+        # Only log audit API access
+        if request.url.path.startswith("/api/v1/audit"):
+            start_time = datetime.now(timezone.utc)
 
-        return response
+            # Get user from request state (set by auth)
+            user_id = "anonymous"
+            try:
+                # Try to extract user from headers
+                auth_header = request.headers.get("authorization")
+                if auth_header:
+                    # In production, decode JWT and get user ID
+                    user_id = "authenticated_user"
+            except:
+                pass
+
+            # Process request
+            response = await call_next(request)
+
+            # Log to audit trail
+            try:
+                from ...models.audit import (
+                    AuditEvent,
+                    ActorType,
+                    EventCategory,
+                    Action,
+                    Severity,
+                    AdminEventTypes
+                )
+                from ...services.audit import get_audit_service
+
+                audit_service = get_audit_service()
+                if audit_service:
+                    # Create audit event for meta-audit
+                    event = AuditEvent(
+                        event_id="",  # Will be auto-generated
+                        timestamp=start_time,
+                        organization_id="system",  # Meta-audit is system-wide
+                        actor_type=ActorType.USER if user_id != "anonymous" else ActorType.SYSTEM,
+                        actor_id=user_id,
+                        actor_ip=request.client.host if request.client else None,
+                        actor_user_agent=request.headers.get("user-agent"),
+                        event_category=EventCategory.ADMIN,
+                        event_type=AdminEventTypes.AUDIT_LOG_VIEWED,
+                        event_severity=Severity.INFO,
+                        resource_type="audit_api",
+                        resource_id=request.url.path,
+                        action=Action.READ if request.method == "GET" else Action.EXPORT,
+                        request_id=request.headers.get("x-request-id", ""),
+                        new_state={
+                            "method": request.method,
+                            "path": request.url.path,
+                            "query_params": dict(request.query_params),
+                            "status_code": response.status_code,
+                            "response_time_ms": int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+                        }
+                    )
+
+                    # Log asynchronously (don't block response)
+                    import asyncio
+                    asyncio.create_task(audit_service.log_event(event))
+            except Exception as e:
+                # Don't fail request if meta-audit logging fails
+                print(f"Meta-audit logging failed: {e}")
+
+            return response
+        else:
+            # Not an audit API endpoint, just pass through
+            response = await call_next(request)
+            return response

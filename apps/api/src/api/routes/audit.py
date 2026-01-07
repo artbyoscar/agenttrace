@@ -25,6 +25,14 @@ from ....services.audit import get_audit_service
 from ....services.audit_export import AuditExportService, ExportFormat, ExportJob
 from ....services.audit_verification import AuditChain
 from ...utils.pagination import PaginationCursor, PaginatedResponse
+from ...middleware.access_control import (
+    User,
+    get_current_user,
+    require_audit_read,
+    require_audit_export,
+    Permission,
+    _rate_limiters
+)
 
 
 router = APIRouter(prefix="/v1/audit", tags=["Audit Trail"])
@@ -113,7 +121,8 @@ async def query_events(
     action: Optional[Action] = Query(None, description="Filter by action"),
     severity: Optional[Severity] = Query(None, description="Filter by severity"),
     limit: int = Query(100, le=1000, description="Results per page"),
-    cursor: Optional[str] = Query(None, description="Pagination cursor")
+    cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    current_user: User = Depends(require_audit_read)
 ):
     """
     Query audit events with comprehensive filtering.
@@ -138,6 +147,16 @@ async def query_events(
     }
     ```
     """
+    # Rate limiting
+    limiter = _rate_limiters["query"]
+    if not limiter.check_rate_limit(current_user.user_id):
+        retry_after = limiter.get_retry_after(current_user.user_id)
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded",
+            headers={"Retry-After": str(retry_after)}
+        )
+
     audit_service = get_audit_service()
     if not audit_service:
         raise HTTPException(status_code=503, detail="Audit service not available")
@@ -220,7 +239,7 @@ async def query_events(
 
 
 @router.get("/events/{event_id}")
-async def get_event(event_id: str):
+async def get_event(event_id: str, current_user: User = Depends(require_audit_read)):
     """
     Get a single audit event by ID with verification status.
 
@@ -268,7 +287,8 @@ async def get_event(event_id: str):
 async def get_event_context(
     event_id: str,
     before: int = Query(5, le=50, description="Number of events before"),
-    after: int = Query(5, le=50, description="Number of events after")
+    after: int = Query(5, le=50, description="Number of events after"),
+    current_user: User = Depends(require_audit_read)
 ):
     """
     Get an event with surrounding context (events before and after).
@@ -336,7 +356,8 @@ async def get_event_context(
 async def get_audit_summary(
     organization_id: str = Query(..., description="Organization ID"),
     start_time: datetime = Query(..., description="Start time"),
-    end_time: datetime = Query(..., description="End time")
+    end_time: datetime = Query(..., description="End time"),
+    current_user: User = Depends(require_audit_read)
 ):
     """
     Get audit summary with aggregated statistics.
@@ -462,7 +483,8 @@ async def get_actor_activity(
     organization_id: str = Query(..., description="Organization ID"),
     start_time: Optional[datetime] = Query(None, description="Start time"),
     end_time: Optional[datetime] = Query(None, description="End time"),
-    limit: int = Query(1000, le=10000, description="Max events to return")
+    limit: int = Query(1000, le=10000, description="Max events to return"),
+    current_user: User = Depends(require_audit_read)
 ):
     """
     Get full activity timeline for a specific actor.
@@ -537,7 +559,7 @@ async def get_actor_activity(
 # ========== Export Endpoints ==========
 
 @router.post("/export")
-async def create_export(request: ExportRequest):
+async def create_export(request: ExportRequest, current_user: User = Depends(require_audit_export)):
     """
     Create an async export job.
 
@@ -565,6 +587,16 @@ async def create_export(request: ExportRequest):
     }
     ```
     """
+    # Rate limiting for exports (stricter limits)
+    limiter = _rate_limiters["export"]
+    if not limiter.check_rate_limit(current_user.user_id):
+        retry_after = limiter.get_retry_after(current_user.user_id)
+        raise HTTPException(
+            status_code=429,
+            detail="Export rate limit exceeded",
+            headers={"Retry-After": str(retry_after)}
+        )
+
     export_service = get_export_service()
 
     # Build filter from request
@@ -584,7 +616,7 @@ async def create_export(request: ExportRequest):
     # Create export job
     job = await export_service.create_export(
         organization_id=request.organization_id,
-        actor_id="current_user",  # TODO: Get from auth context
+        actor_id=current_user.user_id,
         filter=filter,
         format=request.format,
         include_verification=request.include_verification,
@@ -595,7 +627,7 @@ async def create_export(request: ExportRequest):
 
 
 @router.get("/export/{export_id}")
-async def get_export_status(export_id: str):
+async def get_export_status(export_id: str, current_user: User = Depends(require_audit_export)):
     """
     Get export job status.
 
@@ -626,7 +658,7 @@ async def get_export_status(export_id: str):
 
 
 @router.get("/export/{export_id}/download")
-async def download_export(export_id: str):
+async def download_export(export_id: str, current_user: User = Depends(require_audit_export)):
     """
     Download completed export file.
 

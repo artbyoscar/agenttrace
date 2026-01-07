@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
 
-from src.api.routes import traces, projects, analytics
+from src.api.routes import traces, projects, analytics, audit
+from src.api.middleware.access_control import AuditAPIMiddleware
 from src.config import settings
 
 
@@ -32,10 +33,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Audit API middleware for meta-audit logging
+app.add_middleware(AuditAPIMiddleware)
+
 # Include routers
 app.include_router(traces.router, prefix="/api/v1/traces", tags=["traces"])
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
+app.include_router(audit.router, prefix="/api", tags=["audit"])
 
 
 @app.get("/")
