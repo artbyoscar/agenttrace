@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agenttrace.dev/schemas/trace.schema.json",
+  "title": "AgentTrace Trace Schema",
+  "description": "Schema for AgentTrace traces - complete execution traces containing multiple spans",
+  "type": "object",
+  "required": ["trace_id", "name", "project_id", "start_time", "spans"],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "description": "Unique identifier for the trace",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable trace name",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Project this trace belongs to",
+      "minLength": 1
+    },
+    "start_time": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when the trace started",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": ["string", "null"],
+      "description": "ISO 8601 timestamp when the trace ended",
+      "format": "date-time"
+    },
+    "duration": {
+      "type": ["number", "null"],
+      "description": "Total trace duration in seconds",
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "description": "Overall trace status",
+      "enum": ["unset", "ok", "error"],
+      "default": "unset"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Primary AI framework used",
+      "enum": [
+        "langchain",
+        "crewai",
+        "autogen",
+        "openai_agents",
+        "llamaindex",
+        "semantic_kernel",
+        "haystack",
+        "custom",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for filtering and categorization",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "uniqueItems": true
+    },
+    "environment": {
+      "type": "string",
+      "description": "Deployment environment",
+      "enum": ["development", "staging", "production", "test"],
+      "default": "development"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Custom metadata",
+      "additionalProperties": true
+    },
+    "user_id": {
+      "type": ["string", "null"],
+      "description": "User who triggered the trace"
+    },
+    "session_id": {
+      "type": ["string", "null"],
+      "description": "Session identifier"
+    },
+    "spans": {
+      "type": "array",
+      "description": "All spans in this trace",
+      "items": {
+        "$ref": "span.schema.json"
+      },
+      "minItems": 1
+    },
+    "total_tokens": {
+      "type": ["integer", "null"],
+      "description": "Total tokens used across all LLM calls",
+      "minimum": 0
+    },
+    "total_cost": {
+      "type": ["number", "null"],
+      "description": "Total cost in USD across all LLM calls",
+      "minimum": 0
+    },
+    "error_count": {
+      "type": "integer",
+      "description": "Number of spans with errors",
+      "minimum": 0,
+      "default": 0
+    }
+  },
+  "additionalProperties": false
+}

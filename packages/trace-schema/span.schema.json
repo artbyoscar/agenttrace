@@ -1,0 +1,391 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agenttrace.dev/schemas/span.schema.json",
+  "title": "AgentTrace Span Schema",
+  "description": "Schema for AgentTrace spans - OpenTelemetry-compatible with AI agent extensions",
+  "type": "object",
+  "required": ["trace_id", "span_id", "name", "start_time", "span_type"],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "description": "Unique identifier for the trace this span belongs to",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "span_id": {
+      "type": "string",
+      "description": "Unique identifier for this span",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "parent_span_id": {
+      "type": ["string", "null"],
+      "description": "Parent span ID (null for root spans)",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name for the span",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "start_time": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when the span started",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": ["string", "null"],
+      "description": "ISO 8601 timestamp when the span ended",
+      "format": "date-time"
+    },
+    "duration": {
+      "type": ["number", "null"],
+      "description": "Duration in seconds",
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "description": "Execution status of the span",
+      "enum": ["unset", "ok", "error"],
+      "default": "unset"
+    },
+    "status_message": {
+      "type": ["string", "null"],
+      "description": "Additional information about the status",
+      "maxLength": 1024
+    },
+    "span_type": {
+      "type": "string",
+      "description": "Type of operation this span represents",
+      "enum": [
+        "llm_call",
+        "embedding",
+        "agent_step",
+        "chain",
+        "workflow",
+        "tool_call",
+        "retrieval",
+        "search",
+        "preprocessing",
+        "postprocessing",
+        "transformation",
+        "memory_read",
+        "memory_write",
+        "span",
+        "root"
+      ]
+    },
+    "framework": {
+      "type": "string",
+      "description": "AI framework that generated this span",
+      "enum": [
+        "langchain",
+        "crewai",
+        "autogen",
+        "openai_agents",
+        "llamaindex",
+        "semantic_kernel",
+        "haystack",
+        "custom",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "input": {
+      "description": "Input to the operation (for replay)",
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string" },
+        { "type": "object" },
+        { "type": "array" }
+      ]
+    },
+    "output": {
+      "description": "Output from the operation (for replay)",
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string" },
+        { "type": "object" },
+        { "type": "array" }
+      ]
+    },
+    "llm": {
+      "type": ["object", "null"],
+      "description": "LLM-specific metadata (when span_type is llm_call)",
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Model name (e.g., 'gpt-4', 'claude-2')",
+          "minLength": 1
+        },
+        "provider": {
+          "type": ["string", "null"],
+          "description": "LLM provider (e.g., 'openai', 'anthropic')"
+        },
+        "messages": {
+          "type": "array",
+          "description": "Conversation messages",
+          "items": {
+            "type": "object",
+            "required": ["role", "content"],
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": ["system", "user", "assistant", "function", "tool"]
+              },
+              "content": {
+                "type": "string"
+              },
+              "name": {
+                "type": ["string", "null"]
+              },
+              "function_call": {
+                "type": ["object", "null"]
+              },
+              "tool_calls": {
+                "type": ["array", "null"],
+                "items": { "type": "object" }
+              }
+            }
+          }
+        },
+        "temperature": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 2
+        },
+        "max_tokens": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "top_p": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "frequency_penalty": {
+          "type": ["number", "null"],
+          "minimum": -2,
+          "maximum": 2
+        },
+        "presence_penalty": {
+          "type": ["number", "null"],
+          "minimum": -2,
+          "maximum": 2
+        },
+        "stop_sequences": {
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        },
+        "response": {
+          "type": ["string", "null"]
+        },
+        "finish_reason": {
+          "type": ["string", "null"],
+          "enum": ["stop", "length", "function_call", "tool_calls", "content_filter", null]
+        },
+        "usage": {
+          "type": ["object", "null"],
+          "properties": {
+            "prompt_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "completion_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "total_tokens": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["prompt_tokens", "completion_tokens", "total_tokens"]
+        },
+        "functions": {
+          "type": ["array", "null"],
+          "items": { "type": "object" }
+        },
+        "function_call": {
+          "type": ["object", "null"]
+        },
+        "tools": {
+          "type": ["array", "null"],
+          "items": { "type": "object" }
+        },
+        "tool_choice": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string" },
+            { "type": "object" }
+          ]
+        },
+        "cost_usd": {
+          "type": ["number", "null"],
+          "minimum": 0
+        }
+      },
+      "required": ["model"]
+    },
+    "tool": {
+      "type": ["object", "null"],
+      "description": "Tool-specific metadata (when span_type is tool_call)",
+      "properties": {
+        "tool_name": {
+          "type": "string",
+          "description": "Name of the tool",
+          "minLength": 1
+        },
+        "tool_input": {
+          "type": ["object", "null"],
+          "description": "Input parameters to the tool"
+        },
+        "tool_output": {
+          "description": "Output from the tool"
+        },
+        "tool_error": {
+          "type": ["string", "null"],
+          "description": "Error message if tool call failed"
+        },
+        "tool_metadata": {
+          "type": ["object", "null"],
+          "description": "Additional tool metadata"
+        }
+      },
+      "required": ["tool_name"]
+    },
+    "retrieval": {
+      "type": ["object", "null"],
+      "description": "Retrieval-specific metadata (when span_type is retrieval)",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Query text or embedding",
+          "minLength": 1
+        },
+        "collection": {
+          "type": ["string", "null"],
+          "description": "Collection or index name"
+        },
+        "top_k": {
+          "type": ["integer", "null"],
+          "description": "Number of results requested",
+          "minimum": 1
+        },
+        "score_threshold": {
+          "type": ["number", "null"],
+          "description": "Minimum similarity score",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "filters": {
+          "type": ["object", "null"],
+          "description": "Query filters"
+        },
+        "num_results": {
+          "type": ["integer", "null"],
+          "description": "Actual number of results returned",
+          "minimum": 0
+        },
+        "results": {
+          "type": ["array", "null"],
+          "description": "Retrieved documents",
+          "items": { "type": "object" }
+        },
+        "scores": {
+          "type": ["array", "null"],
+          "description": "Similarity scores",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "required": ["query"]
+    },
+    "attributes": {
+      "type": "object",
+      "description": "Custom key-value attributes",
+      "additionalProperties": true
+    },
+    "events": {
+      "type": "array",
+      "description": "Span events (logs)",
+      "items": {
+        "type": "object",
+        "required": ["name", "timestamp"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "description": "Links to other spans",
+      "items": {
+        "type": "object",
+        "required": ["trace_id", "span_id"],
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "span_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "error": {
+      "type": ["object", "null"],
+      "description": "Error information if status is 'error'",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Error type/class name"
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "traceback": {
+          "type": ["string", "null"],
+          "description": "Stack trace"
+        }
+      },
+      "required": ["type", "message"]
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for filtering and categorization",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "uniqueItems": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional custom metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
